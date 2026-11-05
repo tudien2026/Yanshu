@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d68ad">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231d68ad'/%3E%3Ctext x='32' y='43' font-size='30' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3EH%C3%B3a%3C/text%3E%3C/svg%3E">
+<style>
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;-webkit-tap-highlight-color:transparent}
+button{touch-action:manipulation;-webkit-appearance:none;appearance:none}
+[hidden]{display:none!important}
+</style>
+<title>Lab Ôn Tập Hoá 12</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: một cột hẹp như trang sổ thí nghiệm; menu là các ô kiểu bảng tuần hoàn. Màu lấy từ hoá học trong bài: xanh lam CuSO₄ là màu nhấn, đỏ gạch Cu₂O báo sai, xanh lục báo đúng. */
+:root{
+  --paper:#eef3f6; --card:#ffffff; --ink:#132430; --muted:#566974; --line:#d1dce2;
+  --cu:#1d68ad; --cu-soft:#dbe9f6; --brick:#b0442a; --brick-soft:#f7e1da; --ok:#2b8552; --ok-soft:#dcf0e3; --silver:#e4eaee;
+  --f-display:"Bricolage Grotesque","Be Vietnam Pro",system-ui,sans-serif;
+  --f-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0e1920; --card:#15232c; --ink:#e3ecf1; --muted:#93a6b1; --line:#26363f;
+  --cu:#62aef0; --cu-soft:#183247; --brick:#e5795e; --brick-soft:#3a211b; --ok:#5fc78e; --ok-soft:#173326; --silver:#1c2c36; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0e1920; --card:#15232c; --ink:#e3ecf1; --muted:#93a6b1; --line:#26363f;
+  --cu:#62aef0; --cu-soft:#183247; --brick:#e5795e; --brick-soft:#3a211b; --ok:#5fc78e; --ok-soft:#173326; --silver:#1c2c36; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(28px,6vw,40px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:24px;font-weight:800}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.tile:focus-visible{outline:3px solid var(--cu);outline-offset:2px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lead{color:var(--muted);max-width:60ch}
+.total{font-variant-numeric:tabular-nums;font-weight:700;color:var(--cu);font-size:14px;border:1.5px solid var(--cu);padding:4px 10px;border-radius:999px;white-space:nowrap}
+
+/* menu tiles */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
+.tile{position:relative;background:var(--card);border:2px solid var(--ink);border-radius:4px;padding:10px 12px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;min-height:150px;transition:transform .12s, box-shadow .12s}
+.tile:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--cu)}
+.tile .n{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;display:flex;justify-content:space-between}
+.tile .sym{font-family:var(--f-display);font-weight:800;font-size:44px;line-height:1;margin-top:6px;color:var(--cu)}
+.tile .nm{font-weight:700;font-size:15px;line-height:1.25;margin-top:auto}
+.tile .ds{font-size:12.5px;color:var(--muted);line-height:1.35}
+.stars{letter-spacing:2px;font-size:14px;color:var(--line)}
+.stars b{color:#d9a21b;font-weight:400}
+
+/* game panel */
+.panel{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.back{background:none;border:none;color:var(--muted);padding:4px 0;font-size:14px}
+.back:hover{color:var(--ink)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.chip{font-size:13px;font-weight:600;background:var(--silver);padding:3px 10px;border-radius:999px}
+.chip.hot{background:var(--cu-soft);color:var(--cu)}
+.progress{height:6px;background:var(--silver);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--cu);transition:width .3s}
+.timer i{background:var(--ok)}
+.timer.low i{background:var(--brick)}
+.q{font-size:19px;font-weight:600;line-height:1.45}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:560px){.opts{grid-template-columns:1fr}}
+.opt{background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:12px 14px;text-align:left;font-weight:500;min-height:52px;transition:border-color .12s,background .12s}
+.opt:hover:not(:disabled){border-color:var(--cu)}
+.opt:disabled{cursor:default}
+.opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ink)}
+.opt.wrong{background:var(--brick-soft);border-color:var(--brick)}
+.opt .k{display:inline-block;width:22px;font-weight:700;color:var(--muted)}
+.fb{border-radius:8px;padding:12px 14px;font-size:15px;line-height:1.5}
+.fb.ok{background:var(--ok-soft);border-left:4px solid var(--ok)}
+.fb.no{background:var(--brick-soft);border-left:4px solid var(--brick)}
+.fb b{display:block;margin-bottom:2px}
+.primary{background:var(--cu);color:#fff;border:none;border-radius:8px;padding:12px 20px;font-weight:700;align-self:flex-start}
+:root[data-theme="dark"] .primary{color:#08131a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .primary{color:#08131a}}
+.primary:hover{filter:brightness(1.08)}
+.ghost{background:none;border:1.5px solid var(--line);border-radius:8px;padding:11px 18px;font-weight:600}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+
+/* true/false */
+.tf{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tfb{border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:18px;font-family:var(--f-display);font-weight:800;font-size:24px}
+.tfb.t{color:var(--ok)} .tfb.f{color:var(--brick)}
+.tfb.t:hover{border-color:var(--ok)} .tfb.f:hover{border-color:var(--brick)}
+.stmt{font-size:20px;font-weight:600;min-height:3.2em;display:flex;align-items:center}
+.flash-ok{animation:fo .35s} .flash-no{animation:fn .35s}
+@keyframes fo{0%{background:var(--ok-soft)}100%{background:var(--card)}}
+@keyframes fn{0%{background:var(--brick-soft)}100%{background:var(--card)}}
+
+/* match */
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mi{background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;text-align:left;font-weight:500;font-size:15px;min-height:48px;overflow-wrap:anywhere}
+.mi.sel{border-color:var(--cu);background:var(--cu-soft)}
+.mi.done{opacity:.35;border-style:dashed;cursor:default}
+.mi.bad{animation:shake .3s;border-color:var(--brick)}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* sort */
+.specimen{align-self:center;font-size:24px;font-weight:700;background:var(--paper);border:2px dashed var(--cu);border-radius:10px;padding:16px 26px;text-align:center;max-width:100%;overflow-wrap:anywhere}
+.bins{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.bin{border:2px solid var(--ink);border-top-width:6px;border-radius:4px 4px 12px 12px;background:var(--card);padding:14px 10px;font-weight:700;min-height:70px}
+.bin:hover{background:var(--cu-soft)}
+.bin small{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:4px;font-variant-numeric:tabular-nums}
+
+/* mystery */
+.tube{display:flex;gap:16px;align-items:flex-start}
+.tube svg{flex:none}
+.clues{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0}
+.clue{background:var(--paper);border-left:4px solid var(--cu);padding:8px 12px;border-radius:0 6px 6px 0;font-size:15.5px}
+.clue.locked{border-left-color:var(--line);color:var(--muted);font-style:italic}
+
+/* equation */
+.eq{font-size:21px;font-weight:600;background:var(--paper);border-radius:8px;padding:16px;overflow-x:auto;white-space:nowrap}
+.eq .cond{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-top:4px;white-space:normal}
+.blank{display:inline-block;min-width:70px;border-bottom:3px solid var(--cu);color:var(--cu);text-align:center;padding:0 6px}
+.blank.no{color:var(--brick);border-color:var(--brick)}
+
+/* set picker + result */
+.sets{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.set{background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:12px 14px;text-align:left}
+.set:hover{border-color:var(--cu)}
+.set b{display:block}
+.set span{font-size:13px;color:var(--muted)}
+.result{text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.big{font-family:var(--f-display);font-weight:800;font-size:56px;color:var(--cu);line-height:1;font-variant-numeric:tabular-nums}
+.bigstars{font-size:34px;letter-spacing:6px;color:var(--line)} .bigstars b{color:#d9a21b;font-weight:400}
+.review{text-align:left;width:100%;display:flex;flex-direction:column;gap:8px}
+.review h3{font-size:17px}
+.rv{background:var(--brick-soft);border-radius:8px;padding:10px 12px;font-size:14.5px}
+.rv i{font-style:normal;color:var(--muted);display:block;font-size:13.5px;margin-top:2px}
+.foot{font-size:12.5px;color:var(--muted);text-align:center}
+.mebar{display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;font-size:14.5px}
+.linkbtn{background:none;border:none;color:var(--cu);font-weight:600;padding:0;text-decoration:underline;text-underline-offset:3px}
+.lbbtn{display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper);border:none;border-radius:8px;padding:12px 16px;font-weight:700;font-size:16px;align-self:flex-start}
+.lbbtn:hover{filter:brightness(1.15)}
+.lbwrap{overflow-x:auto}
+.lbt{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:15px}
+.lbt th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:6px;border-bottom:2px solid var(--ink)}
+.lbt td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.lbt .r{text-align:right;white-space:nowrap}
+.lbt .rk{font-family:var(--f-display);font-weight:800;font-size:18px;width:40px;color:var(--muted)}
+.lbt tr.top1 .rk{color:#c9921a}.lbt tr.top2 .rk{color:#8c99a3}.lbt tr.top3 .rk{color:#b06a3b}
+.lbt tr.mine td{background:var(--cu-soft)}
+.lbt .nm{font-weight:600;overflow-wrap:anywhere}
+.lbt .nm small{display:block;font-weight:500;color:var(--muted);font-size:12.5px}
+.form{display:flex;flex-direction:column;gap:12px;max-width:420px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:600}
+.field input,.field select,select.inp{font:inherit;font-weight:500;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);width:100%}
+.field input:focus,.field select:focus,select.inp:focus{outline:2px solid var(--cu);border-color:var(--cu)}
+.note{font-size:14px;color:var(--muted)}
+.note.ok{color:var(--ok)}.note.no{color:var(--brick)}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:15px}
+code{background:var(--silver);padding:1px 6px;border-radius:4px;font-size:.92em;overflow-wrap:anywhere}
+.sharebox{background:var(--paper);border:1.5px dashed var(--line);border-radius:8px;padding:10px 12px;font-size:13.5px;overflow-wrap:anywhere}
+@media (hover:none){.tile:hover{transform:none;box-shadow:none}.bin:hover{background:var(--card)}.opt:hover:not(:disabled),.set:hover,.tfb.t:hover,.tfb.f:hover{border-color:var(--line)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+// ---------- helpers ----------
+const SUB={0:'₀',1:'₁',2:'₂',3:'₃',4:'₄',5:'₅',6:'₆',7:'₇',8:'₈',9:'₉'};
+const f=s=>String(s).replace(/([A-Za-z\)\]])(\d+)/g,(m,a,d)=>a+d.replace(/\d/g,x=>SUB[x]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const app=document.getElementById('app');
+const store={get(k,d){try{const v=localStorage.getItem('hoa12:'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('hoa12:'+k,JSON.stringify(v))}catch(e){}}};
+const starsOf=p=>p>=.9?3:p>=.7?2:p>=.5?1:0;
+const starHTML=(n,cls='stars')=>`<span class="${cls}">${'<b>★</b>'.repeat(n)}${'★'.repeat(3-n)}</span>`;
+let timerId=null; const stopTimer=()=>{if(timerId){clearInterval(timerId);timerId=null}};
+
+// ---------- data ----------
+const MCQ=[
+{q:'Chất nào sau đây thuộc loại ester?',a:'HCOOCH3',w:['CH3CHO','CH3OH','CH3COOH'],e:'Ester có dạng RCOOR′. HCOOCH3 là methyl formate.'},
+{q:'Tên gọi của CH3COOC2H5 là',a:'ethyl acetate',w:['methyl acetate','ethyl propionate','methyl propionate'],e:'Gốc R′ (C2H5 = ethyl) + gốc acid (CH3COO = acetate).'},
+{q:'Công thức của ethyl formate là',a:'HCOOC2H5',w:['CH3COOC2H5','HCOOCH3','CH3COOCH3'],e:'Formate là HCOO–, ethyl là C2H5.'},
+{q:'Công thức của methyl propionate là',a:'C2H5COOCH3',w:['CH3COOC2H5','HCOOC3H7','CH3COOCH3'],e:'Propionate là C2H5COO–, methyl là CH3.'},
+{q:'Trong các chất HCOOCH3, CH3COOCH3, C2H5OH, CH3COOH, chất có nhiệt độ sôi cao nhất là',a:'CH3COOH',w:['HCOOCH3','CH3COOCH3','C2H5OH'],e:'Acid tạo liên kết hydrogen bền nhất: CH3COOH sôi ở 118 °C.'},
+{q:'Ester có nhiệt độ sôi thấp hơn alcohol có phân tử khối tương đương vì',a:'ester không tạo liên kết hydrogen giữa các phân tử',w:['ester có phân tử khối nhỏ hơn','ester tan tốt trong nước','ester có mạch carbon phân nhánh'],e:'Phân tử ester không có nhóm –OH nên không tạo liên kết hydrogen với nhau.'},
+{q:'Thuỷ phân ester trong môi trường kiềm còn được gọi là phản ứng',a:'xà phòng hoá',w:['ester hoá','hydrogen hoá','oxi hoá'],e:'Phản ứng một chiều, tạo muối và alcohol.'},
+{q:'Thuỷ phân CH3COOC2H5 trong dung dịch NaOH, đun nóng, thu được',a:'CH3COONa và C2H5OH',w:['CH3COOH và C2H5OH','C2H5COONa và CH3OH','CH3COONa và CH3OH'],e:'CH3COOC2H5 + NaOH → CH3COONa + C2H5OH.'},
+{q:'Lipid có tính chất chung là',a:'không tan trong nước, tan trong dung môi hữu cơ không phân cực',w:['tan tốt trong nước','đều là chất rắn ở điều kiện thường','đều chứa nitrogen'],e:'Đây là đặc điểm chung của mọi lipid.'},
+{q:'Acid béo thường có mạch carbon',a:'không phân nhánh, số C chẵn',w:['phân nhánh, số C chẵn','vòng, số C chẵn','phân nhánh, số C lẻ'],e:'Thường từ 12 đến 24 nguyên tử C.'},
+{q:'Công thức của triolein là',a:'(C17H33COO)3C3H5',w:['(C17H35COO)3C3H5','(C15H31COO)3C3H5','(C17H31COO)3C3H5'],e:'Oleic acid là C17H33COOH (có 1 liên kết C=C).'},
+{q:'Phân tử khối của tristearin là',a:'890',w:['884','806','878'],e:'(C17H35COO)3C3H5 có M = 890.'},
+{q:'Dầu mỡ để lâu có mùi khó chịu chủ yếu do bị',a:'oxi hoá',w:['thuỷ phân','xà phòng hoá','hydrogen hoá'],e:'Liên kết C=C trong gốc acid béo bị O2 không khí oxi hoá.'},
+{q:'Thêm dung dịch NaCl bão hoà sau phản ứng xà phòng hoá nhằm',a:'giảm độ tan của muối acid béo, giúp xà phòng tách ra và nổi lên',w:['làm phản ứng xảy ra nhanh hơn','trung hoà NaOH dư','kết tủa glycerol'],e:'Muối acid béo ít tan trong dung dịch NaCl đặc nên tách lớp.'},
+{q:'Chất nào được dùng làm chất giặt rửa tổng hợp?',a:'CH3[CH2]11OSO3Na',w:['CH3[CH2]12COOCH3','CH3COONa','CH3[CH2]12COONa'],e:'Sodium alkyl sulfate là chất giặt rửa tổng hợp. CH3[CH2]12COONa là xà phòng.'},
+{q:'Điểm chung của xà phòng và chất giặt rửa tổng hợp là',a:'phân tử có đầu ưa nước và đuôi kị nước',w:['đều dễ phân huỷ sinh học','đều giặt tốt trong nước cứng','đều điều chế từ chất béo'],e:'Cấu tạo này giúp chúng làm sạch vết bẩn dầu mỡ.'},
+{q:'Carbohydrate chiếm khoảng 40% mật ong, tạo vị ngọt sắc là',a:'fructose',w:['saccharose','glucose','tinh bột'],e:'Fructose có nhiều nhất trong mật ong.'},
+{q:'Carbohydrate chiếm khoảng 90% khối lượng sợi bông là',a:'cellulose',w:['tinh bột','saccharose','maltose'],e:'Bông gần như là cellulose nguyên chất.'},
+{q:'Chất có nhiều trong cây mía, hoa thốt nốt, củ cải đường là',a:'saccharose',w:['glucose','fructose','maltose'],e:'Đường kính (đường ăn) chính là saccharose.'},
+{q:'Ở dạng mạch hở, phân tử glucose có',a:'5 nhóm –OH và 1 nhóm –CHO',w:['4 nhóm –OH và 1 nhóm –CHO','5 nhóm –OH và 1 nhóm C=O ketone','4 nhóm –OH và 1 nhóm C=O ketone'],e:'Glucose là polyhydroxy aldehyde.'},
+{q:'Carbohydrate chỉ tồn tại dạng mạch vòng là',a:'saccharose',w:['glucose','fructose','maltose'],e:'Saccharose không còn nhóm –OH hemiacetal nên không mở vòng được.'},
+{q:'Carbohydrate làm mất màu nước bromine là',a:'glucose',w:['fructose','saccharose','cellulose'],e:'Nhóm –CHO của glucose bị Br2 oxi hoá. Fructose không phản ứng.'},
+{q:'Tính chất riêng của nhóm –OH hemiacetal ở glucose thể hiện khi phản ứng với',a:'CH3OH/HCl khan',w:['thuốc thử Tollens','Cu(OH)2/NaOH','nước bromine'],e:'Phản ứng tạo methyl glucoside.'},
+{q:'Tinh bột gồm hai thành phần là',a:'amylose và amylopectin',w:['glucose và fructose','dextrin và maltose','saccharose và maltose'],e:'Cả hai đều tạo từ các đơn vị α-glucose.'},
+{q:'Cellulose tan được trong',a:'nước Schweizer',w:['nước','ethanol','benzene'],e:'Nước Schweizer là dung dịch [Cu(NH3)4](OH)2.'},
+{q:'Chất tạo thành từ các đơn vị β-glucose là',a:'cellulose',w:['tinh bột','maltose','saccharose'],e:'Tinh bột tạo từ α-glucose, cellulose từ β-glucose.'},
+{q:'Thuỷ phân hoàn toàn tinh bột thu được',a:'glucose',w:['fructose','maltose','saccharose'],e:'(C6H10O5)n + nH2O → nC6H12O6.'},
+{q:'Glucose hoà tan Cu(OH)2 ở nhiệt độ thường chứng tỏ glucose có tính chất của',a:'polyalcohol',w:['aldehyde','carboxylic acid','amine'],e:'Do có nhiều nhóm –OH kề nhau.'},
+{q:'Glucose tráng bạc với thuốc thử Tollens. Hiện tượng và kết luận là',a:'có lớp bạc sáng; glucose có tính chất của aldehyde',w:['kết tủa đỏ gạch; glucose có tính chất của aldehyde','có lớp bạc sáng; glucose có tính chất của polyalcohol','dung dịch xanh lam; glucose có tính chất của aldehyde'],e:'Ag+ bị nhóm –CHO khử thành Ag.'},
+{q:'Nhỏ dung dịch iodine vào hồ tinh bột, hiện tượng là',a:'xuất hiện màu xanh tím',w:['kết tủa đỏ gạch','kết tủa trắng','dung dịch mất màu'],e:'Tinh bột hấp phụ iodine tạo hợp chất màu xanh tím.'},
+{q:'Bệnh nhân yếu sức thường được truyền dung dịch chứa',a:'glucose',w:['saccharose','fructose','tinh bột'],e:'Glucose được cơ thể hấp thu trực tiếp: C6H12O6 + 6O2 → 6CO2 + 6H2O.'},
+{q:'"Nhai kĩ no lâu" vì',a:'enzyme amylase trong nước bọt thuỷ phân một phần tinh bột',w:['tinh bột bị oxi hoá trong miệng','nước bọt chứa glucose','cellulose bị thuỷ phân trong miệng'],e:'Tinh bột → dextrin → maltose, giúp tiêu hoá và hấp thu tốt hơn.'},
+{q:'Chất nào sau đây là amine?',a:'CH3CH2NH2',w:['H2NCH2COOH','CH3COONH4','H2NCH2COOCH3'],e:'Các chất còn lại là amino acid, muối ammonium, ester của amino acid.'},
+{q:'Chất nào sau đây là amine bậc một?',a:'C2H5NH2',w:['(C2H5)2NH','(C2H5)3N','CH3NHC2H5'],e:'Bậc amine = số gốc hydrocarbon gắn với N.'},
+{q:'Ở điều kiện thường, chất tồn tại ở thể khí và tan nhiều trong nước là',a:'methylamine',w:['aniline','glucose','tripalmitin'],e:'Methylamine là chất khí, mùi khai, tan nhiều trong nước.'},
+{q:'Chất làm quỳ tím ẩm chuyển xanh là',a:'CH3NH2',w:['C6H5NH2','C2H5OH','NaCl'],e:'Aniline có tính base rất yếu, không đổi màu quỳ.'},
+{q:'Nhỏ nước bromine vào dung dịch X thấy kết tủa trắng. X là',a:'aniline',w:['methylamine','ethylamine','dimethylamine'],e:'Tạo 2,4,6-tribromoaniline kết tủa trắng.'},
+{q:'Cho từ từ đến dư CH3NH2 vào dung dịch CuSO4, cuối cùng thu được',a:'dung dịch trong suốt màu xanh lam đậm',w:['kết tủa màu xanh','dung dịch không màu','kết tủa đỏ gạch'],e:'Cu(OH)2 tạo ra rồi tan trong CH3NH2 dư, tạo phức xanh lam đậm.'},
+{q:'Số đồng phân cấu tạo amine của C3H9N là',a:'4',w:['2','3','8'],e:'2 bậc một, 1 bậc hai, 1 bậc ba.'},
+{q:'Số đồng phân cấu tạo amine của C4H11N là',a:'8',w:['4','6','7'],e:'4 bậc một, 3 bậc hai, 1 bậc ba.'},
+{q:'Dãy sắp xếp theo tính base giảm dần là',a:'CH3NH2 > NH3 > C6H5NH2',w:['C6H5NH2 > NH3 > CH3NH2','NH3 > CH3NH2 > C6H5NH2','CH3NH2 > C6H5NH2 > NH3'],e:'Gốc alkyl làm tăng, gốc phenyl làm giảm tính base.'},
+{q:'Aniline tác dụng với HNO2 và HCl ở 0–5 °C tạo ra',a:'muối diazonium',w:['phenol và khí N2','kết tủa trắng','muối ammonium'],e:'C6H5NH2 + HNO2 + HCl → C6H5N2⁺Cl⁻ + 2H2O.'},
+{q:'Methylamine tác dụng với HNO2, hiện tượng là',a:'sủi bọt khí N2',w:['kết tủa trắng','dung dịch xanh lam','kết tủa nâu đỏ'],e:'CH3NH2 + HNO2 → CH3OH + N2 + H2O.'},
+];
+
+const TF=[
+{s:'Ester có nhiệt độ sôi thấp hơn alcohol có phân tử khối tương đương.',t:1,e:'Ester không tạo liên kết hydrogen giữa các phân tử.'},
+{s:'Thuỷ phân ester trong môi trường kiềm là phản ứng một chiều.',t:1,e:'Đây là phản ứng xà phòng hoá.'},
+{s:'Thuỷ phân ester trong môi trường acid là phản ứng một chiều.',t:0,e:'Trong môi trường acid, phản ứng thuận nghịch.'},
+{s:'Chất béo là triester của glycerol với acid béo.',t:1,e:'Đúng định nghĩa.'},
+{s:'Acid béo có mạch carbon phân nhánh.',t:0,e:'Acid béo có mạch không phân nhánh, số C chẵn.'},
+{s:'Dầu mỡ bị ôi là do bị thuỷ phân.',t:0,e:'Nguyên nhân chính là liên kết C=C bị oxi hoá.'},
+{s:'Xà phòng là muối sodium hoặc potassium của acid béo.',t:1,e:'Đúng định nghĩa.'},
+{s:'Xà phòng giặt rửa tốt trong nước cứng.',t:0,e:'Xà phòng giặt rửa kém trong nước cứng.'},
+{s:'Chất giặt rửa tổng hợp vẫn giặt rửa tốt trong nước cứng.',t:1,e:'Đây là ưu điểm so với xà phòng.'},
+{s:'Glucose và fructose là đồng phân của nhau.',t:1,e:'Cùng công thức C6H12O6.'},
+{s:'Tinh bột và cellulose là đồng phân của nhau.',t:0,e:'Giá trị n khác nhau nên không phải đồng phân.'},
+{s:'Trong dung dịch, glucose tồn tại chủ yếu ở dạng mạch hở.',t:0,e:'Chủ yếu ở dạng vòng α và β.'},
+{s:'Ở dạng mạch hở, glucose có nhóm ketone.',t:0,e:'Glucose có nhóm aldehyde –CHO. Fructose mới có nhóm ketone.'},
+{s:'Fructose có phản ứng tráng bạc.',t:1,e:'Trong môi trường kiềm, fructose chuyển hoá thành glucose.'},
+{s:'Fructose làm mất màu nước bromine.',t:0,e:'Chỉ glucose làm mất màu nước bromine.'},
+{s:'Saccharose có phản ứng tráng bạc.',t:0,e:'Saccharose không còn nhóm –OH hemiacetal.'},
+{s:'Saccharose hoà tan được Cu(OH)2 ở nhiệt độ thường.',t:1,e:'Có nhiều nhóm –OH kề nhau, tạo dung dịch xanh lam.'},
+{s:'Glycerol hoà tan được Cu(OH)2 tạo dung dịch xanh lam.',t:1,e:'Glycerol là polyalcohol có các nhóm –OH kề nhau.'},
+{s:'Cellulose được tạo từ các đơn vị β-glucose.',t:1,e:'Tinh bột mới tạo từ α-glucose.'},
+{s:'Cellulose tan trong nước nóng.',t:0,e:'Cellulose chỉ tan trong nước Schweizer.'},
+{s:'Tinh bột gồm amylose và amylopectin.',t:1,e:'Đúng thành phần.'},
+{s:'Thuỷ phân hoàn toàn tinh bột thu được maltose.',t:0,e:'Sản phẩm cuối cùng là glucose.'},
+{s:'Lên men glucose thu được ethanol và khí O2.',t:0,e:'Khí thu được là CO2.'},
+{s:'Ethylamine tan tốt trong nước.',t:1,e:'Các amine phân tử khối nhỏ tan tốt.'},
+{s:'Aniline là chất lỏng ở điều kiện thường.',t:1,e:'Aniline là chất lỏng, ít tan trong nước.'},
+{s:'Aniline tan tốt trong nước.',t:0,e:'Aniline ít tan trong nước.'},
+{s:'Methylamine là chất lỏng ở điều kiện thường.',t:0,e:'Methylamine là chất khí.'},
+{s:'Dung dịch aniline làm quỳ tím hoá xanh.',t:0,e:'Tính base của aniline quá yếu.'},
+{s:'Dung dịch methylamine làm phenolphthalein hoá hồng.',t:1,e:'Methylamine có tính base mạnh hơn NH3.'},
+{s:'Dung dịch trimethylamine không làm đổi màu quỳ tím.',t:0,e:'Trimethylamine là alkylamine, làm quỳ hoá xanh.'},
+{s:'Aniline có tính base yếu hơn methylamine.',t:1,e:'Gốc phenyl làm giảm tính base.'},
+{s:'Dimethylamine là amine bậc hai.',t:1,e:'(CH3)2NH có 2 gốc hydrocarbon gắn với N.'},
+{s:'Trimethylamine là amine bậc hai.',t:0,e:'(CH3)3N là amine bậc ba.'},
+{s:'Methylamine tác dụng với HCl tạo CH3NH3Cl.',t:1,e:'CH3NH2 + HCl → CH3NH3Cl.'},
+{s:'C4H11N có 4 đồng phân cấu tạo amine.',t:0,e:'Có 8 đồng phân. 4 là số amine bậc một.'},
+{s:'Methylamine phản ứng với FeCl3 tạo kết tủa nâu đỏ.',t:1,e:'Kết tủa là Fe(OH)3.'},
+];
+
+const MATCH=[
+{name:'Tên ester ↔ công thức',hint:'6 cặp',pairs:[['ethyl acetate','CH3COOC2H5'],['methyl formate','HCOOCH3'],['methyl propionate','C2H5COOCH3'],['propyl acetate','CH3COOC3H7'],['ethyl formate','HCOOC2H5'],['methyl acetate','CH3COOCH3']]},
+{name:'Chất béo, acid béo ↔ công thức',hint:'6 cặp',pairs:[['tristearin','(C17H35COO)3C3H5'],['triolein','(C17H33COO)3C3H5'],['tripalmitin','(C15H31COO)3C3H5'],['trilinolein','(C17H31COO)3C3H5'],['stearic acid','C17H35COOH'],['oleic acid','C17H33COOH']]},
+{name:'Thí nghiệm ↔ hiện tượng',hint:'6 cặp',pairs:[['Glucose + Cu(OH)2, nhiệt độ thường','Dung dịch xanh lam'],['Glucose + Cu(OH)2/NaOH, đun nóng','Kết tủa đỏ gạch'],['Glucose + thuốc thử Tollens','Lớp bạc sáng'],['Hồ tinh bột + iodine','Màu xanh tím'],['Aniline + nước bromine','Kết tủa trắng'],['Methylamine + FeCl3','Kết tủa nâu đỏ']]},
+{name:'Carbohydrate ↔ đặc điểm',hint:'6 cặp',pairs:[['Fructose','Khoảng 40% trong mật ong'],['Saccharose','Mía, củ cải đường'],['Cellulose','Khoảng 90% sợi bông'],['Glucose','Quả nho, dịch truyền'],['Tinh bột','Amylose và amylopectin'],['Maltose','Hai đơn vị glucose']]},
+{name:'Phản ứng amine ↔ sản phẩm',hint:'6 cặp',pairs:[['CH3NH2 + HCl','CH3NH3Cl'],['CH3NH2 + HNO2','CH3OH + N2'],['C6H5NH2 + Br2','Kết tủa trắng tribromoaniline'],['C6H5NH2 + HNO2 + HCl (0–5 °C)','Muối diazonium'],['CH3NH2 dư + CuSO4','Phức xanh lam đậm'],['C6H5NH2 + HCl','C6H5NH3Cl']]},
+];
+
+const SORT=[
+{name:'Ester hay không?',bins:['Ester','Không phải ester'],items:[['HCOOCH3',0],['CH3COOC6H5',0],['(C17H31COO)3C3H5',0],['CH3COOCH=CH2',0],['C6H5COOC2H5',0],['C2H5COOCH3',0],['CH3CH2COOH',1],['C17H33COOK',1],['C2H5OH',1],['CH3COONa',1],['C17H35COOH',1],['CH3OH',1]]},
+{name:'Mono, di hay polysaccharide?',bins:['Monosaccharide','Disaccharide','Polysaccharide'],items:[['Glucose',0],['Fructose',0],['Saccharose',1],['Maltose',1],['Tinh bột',2],['Cellulose',2]]},
+{name:'Bậc của amine',bins:['Bậc một','Bậc hai','Bậc ba'],items:[['CH3NH2',0],['C2H5NH2',0],['C6H5NH2',0],['(CH3)2CHNH2',0],['(CH3)2NH',1],['CH3NHC2H5',1],['(C2H5)2NH',1],['(CH3)3N',2],['(C2H5)3N',2],['(CH3)2NC2H5',2]]},
+{name:'Hoà tan Cu(OH)2 ở nhiệt độ thường?',bins:['Có (xanh lam)','Không'],items:[['Glucose',0],['Fructose',0],['Saccharose',0],['Maltose',0],['Glycerol',0],['Ethylene glycol',0],['Tinh bột',1],['Cellulose',1],['Ethanol',1],['Methyl formate',1]]},
+{name:'Có phản ứng tráng bạc?',bins:['Có tráng bạc','Không'],items:[['Glucose',0],['Fructose',0],['Maltose',0],['HCOOCH3',0],['HCOOC2H5',0],['Saccharose',1],['Tinh bột',1],['Cellulose',1],['CH3COOCH3',1],['Glycerol',1]]},
+{name:'Màu quỳ tím ẩm',bins:['Hoá xanh','Không đổi màu'],items:[['CH3NH2',0],['(CH3)2NH',0],['(CH3)3N',0],['C2H5NH2',0],['C6H5NH2',1],['C2H5OH',1],['Glucose',1],['NaCl',1],['Glycerol',1]]},
+];
+
+const MYS=[
+{a:'Glucose',o:['Glucose','Fructose','Saccharose','Tinh bột'],c:['Hoà tan Cu(OH)2 ở nhiệt độ thường tạo dung dịch xanh lam.','Có phản ứng tráng bạc.','Làm mất màu nước bromine.']},
+{a:'Fructose',o:['Glucose','Fructose','Saccharose','Glycerol'],c:['Hoà tan Cu(OH)2 ở nhiệt độ thường.','Có phản ứng tráng bạc.','Không làm mất màu nước bromine; có nhiều trong mật ong.']},
+{a:'Saccharose',o:['Glucose','Saccharose','Glycerol','Fructose'],c:['Hoà tan Cu(OH)2 ở nhiệt độ thường.','Không có phản ứng tráng bạc.','Có nhiều trong mía và củ cải đường.']},
+{a:'Tinh bột',o:['Tinh bột','Cellulose','Saccharose','Maltose'],c:['Không tan trong nước lạnh.','Thuỷ phân hoàn toàn chỉ thu được glucose.','Với iodine cho màu xanh tím.']},
+{a:'Cellulose',o:['Tinh bột','Cellulose','Saccharose','Glucose'],c:['Là polysaccharide, không tan trong nước.','Tan trong nước Schweizer.','Chiếm khoảng 90% khối lượng sợi bông.']},
+{a:'Aniline',o:['Aniline','Methylamine','Glycerol','Ethyl acetate'],c:['Chất lỏng, ít tan trong nước.','Không làm đổi màu quỳ tím.','Với nước bromine tạo kết tủa trắng.']},
+{a:'Methylamine',o:['Methylamine','Trimethylamine','Aniline','Ammonia'],c:['Chất khí mùi khai, tan nhiều trong nước.','Làm quỳ tím ẩm hoá xanh.','Với HNO2 giải phóng khí N2 và tạo CH3OH.']},
+{a:'Ethyl acetate',o:['Ethyl acetate','Methyl acetate','Ethyl formate','Acetic acid'],c:['Chất lỏng mùi thơm, ít tan trong nước.','Thuỷ phân trong NaOH tạo CH3COONa.','Sản phẩm thuỷ phân còn lại là ethanol.']},
+{a:'Methyl formate',o:['Methyl formate','Ethyl formate','Methyl acetate','Acetic acid'],c:['Là ester, không tan nhiều trong nước.','Có phản ứng tráng bạc.','Thuỷ phân trong NaOH tạo HCOONa và CH3OH.']},
+{a:'Tristearin',o:['Tristearin','Triolein','Tripalmitin','Trilinolein'],c:['Là chất béo rắn ở điều kiện thường.','Gốc acid béo no có 18 nguyên tử C.','Phân tử khối bằng 890.']},
+{a:'Triolein',o:['Tristearin','Triolein','Tripalmitin','Trilinolein'],c:['Là chất béo lỏng (dầu).','Mỗi gốc acid béo có 1 liên kết C=C.','Phân tử khối bằng 884.']},
+{a:'Glycerol',o:['Glycerol','Ethanol','Glucose','Saccharose'],c:['Hoà tan Cu(OH)2 tạo dung dịch xanh lam.','Không phải carbohydrate.','Sinh ra khi xà phòng hoá chất béo.']},
+];
+
+const EQ=[
+{e:'CH3COOC2H5 + NaOH → CH3COONa + ___',c:'đun nóng',a:'C2H5OH',w:['CH3OH','C2H5ONa','CH3COOH']},
+{e:'HCOOCH3 + NaOH → ___ + CH3OH',c:'đun nóng',a:'HCOONa',w:['CH3COONa','HCOOH','CH3ONa']},
+{e:'C2H5COOCH3 + NaOH → C2H5COONa + ___',c:'đun nóng',a:'CH3OH',w:['C2H5OH','CH3COONa','C3H7OH']},
+{e:'CH3COOC2H5 + H2O ⇌ CH3COOH + ___',c:'H2SO4, đun nóng',a:'C2H5OH',w:['CH3OH','CH3COONa','C2H5COOH']},
+{e:'CH3COOCH2CH2CH3 + H2O ⇌ CH3COOH + ___',c:'H2SO4, đun nóng',a:'CH3CH2CH2OH',w:['C2H5OH','CH3OH','C3H7COOH']},
+{e:'(C17H35COO)3C3H5 + 3NaOH → 3___ + C3H5(OH)3',c:'đun nóng',a:'C17H35COONa',w:['C17H33COONa','C15H31COONa','C17H35COOH']},
+{e:'(RCOO)3C3H5 + 3NaOH → 3RCOONa + ___',c:'đun nóng',a:'C3H5(OH)3',w:['C2H5OH','C3H7OH','C2H4(OH)2']},
+{e:'C6H12O6 → 2C2H5OH + 2___',c:'enzyme',a:'CO2',w:['O2','H2','CH4']},
+{e:'C6H12O6 + 6O2 → 6CO2 + 6___',c:'oxi hoá trong cơ thể',a:'H2O',w:['H2','C2H5OH','CO']},
+{e:'(C6H10O5)n + nH2O → n___',c:'enzyme hoặc H⁺, đun nóng',a:'C6H12O6',w:['C12H22O11','C2H5OH','CO2']},
+{e:'6nCO2 + 5nH2O → (C6H10O5)n + 6n___',c:'ánh sáng, chất diệp lục',a:'O2',w:['CO','H2','C6H12O6']},
+{e:'CH3NH2 + HCl → ___',c:'',a:'CH3NH3Cl',w:['CH3Cl + NH3','CH3NH2Cl','CH3OH + NH4Cl']},
+{e:'C6H5NH2 + HCl → ___',c:'',a:'C6H5NH3Cl',w:['C6H5Cl + NH3','C6H5OH + NH4Cl','C6H5N2Cl']},
+{e:'CH3NH2 + HNO2 → CH3OH + ___ + H2O',c:'',a:'N2',w:['NH3','NO2','N2O']},
+{e:'C6H5NH2 + HNO2 + HCl → ___ + 2H2O',c:'0–5 °C',a:'C6H5N2⁺Cl⁻',w:['C6H5OH','C6H5NH3Cl','C6H5Cl']},
+{e:'C6H5NH2 + 3Br2 → C6H2Br3NH2↓ + 3___',c:'kết tủa trắng',a:'HBr',w:['Br2','NaBr','H2O']},
+{e:'3CH3NH2 + FeCl3 + 3H2O → ___↓ + 3CH3NH3Cl',c:'kết tủa nâu đỏ',a:'Fe(OH)3',w:['Fe(OH)2','FeCl2','Fe2O3']},
+{e:'(C17H33COO)3C3H5 + ___NaOH → 3C17H33COONa + C3H5(OH)3',c:'tìm hệ số',a:'3',w:['1','2','6']},
+];
+
+const MODES=[
+{id:'mcq',sym:'Tn',name:'Trắc nghiệm tốc độ',ds:'10 câu, 20 giây mỗi câu. Trả lời nhanh được thêm điểm.',count:MCQ.length,unit:'câu'},
+{id:'tf',sym:'Đs',name:'Đúng hay Sai',ds:'60 giây. Trả lời càng nhiều càng tốt.',count:TF.length,unit:'nhận định'},
+{id:'match',sym:'Gc',name:'Ghép cặp',ds:'Chọn một ô bên trái rồi chọn ô tương ứng bên phải.',count:MATCH.length,unit:'bộ'},
+{id:'sort',sym:'Pl',name:'Phân loại',ds:'Xếp từng chất vào đúng nhóm.',count:SORT.length,unit:'bộ'},
+{id:'mys',sym:'Ôn',name:'Ống nghiệm bí ẩn',ds:'Mở dần gợi ý để đoán chất. Đoán càng sớm, điểm càng cao.',count:MYS.length,unit:'chất'},
+{id:'eq',sym:'Pt',name:'Điền phương trình',ds:'Chọn chất còn thiếu để hoàn thành phương trình.',count:EQ.length,unit:'phương trình'},
+];
+
+// ---------- menu ----------
+function menu(){
+  stopTimer();
+  const best=store.get('best',{});
+  const total=MODES.reduce((s,m)=>s+(best[m.id]||0),0);
+  const p=player(), on=!!sheetUrl();
+  app.innerHTML=`
+  <header class="top">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span class="eyebrow">Hoá học 12 · Ôn tập giữa kì I</span>
+      <h1>Lab Ôn Tập Hoá 12</h1>
+      <p class="lead">Ester, chất béo, carbohydrate và amine qua 6 trò chơi. Chọn một ô để bắt đầu.</p>
+    </div>
+    <span class="total">${total}/18 ★</span>
+  </header>
+  <div class="mebar">
+    <button class="lbbtn" id="lb">Bảng xếp hạng lớp</button>
+    ${on?(p?`<span>Đang chơi: <b>${esc(p.name)}</b> · Lớp ${esc(p.lop)}</span><button class="linkbtn" id="who">Đổi tên</button>`
+          :`<button class="linkbtn" id="who">Nhập tên để điểm lên bảng xếp hạng</button>`):''}
+  </div>
+  <div class="grid">
+    ${MODES.map(m=>`<button class="tile" data-m="${m.id}">
+      <span class="n"><span>${m.count} ${m.unit}</span>${starHTML(best[m.id]||0)}</span>
+      <span class="sym">${m.sym}</span>
+      <span class="nm">${m.name}</span>
+      <span class="ds">${m.ds}</span>
+    </button>`).join('')}
+  </div>
+  <p class="foot">Số sao trên các ô là kỉ lục của bạn trên máy này. · <button class="linkbtn" id="setup" style="font-size:inherit;color:inherit">Dành cho giáo viên: cài đặt bảng xếp hạng</button></p>`;
+  app.querySelectorAll('.tile').forEach(b=>b.onclick=()=>{
+    if(sheetUrl()&&!player()&&!skipName){return askName(()=>START[b.dataset.m]())}
+    START[b.dataset.m]()});
+  document.getElementById('lb').onclick=board;
+  document.getElementById('setup').onclick=setup;
+  const w=document.getElementById('who'); if(w)w.onclick=()=>askName(menu);
+}
+function shell(mode,inner,chips=''){
+  return `<div class="panel" id="panel">
+    <div class="bar"><button class="back" id="back">← Về menu</button><div class="chips">${chips}</div></div>
+    <h2>${mode.name}</h2>${inner}</div>`;
+}
+function bindBack(){const b=document.getElementById('back');if(b)b.onclick=menu}
+
+function finish(modeId,correct,total,extra,mistakes){
+  stopTimer();
+  const mode=MODES.find(m=>m.id===modeId);
+  const pct=total?correct/total:0, st=starsOf(pct);
+  const best=store.get('best',{}); const isNew=st>(best[modeId]||0);
+  if(isNew){best[modeId]=st;store.set('best',best)}
+  const msg=st===3?'Xuất sắc! Bạn nắm rất chắc phần này.':st===2?'Khá tốt. Xem lại các lỗi bên dưới.':st===1?'Tạm ổn. Nên ôn lại phần này.':'Cần ôn lại kĩ phần này.';
+  app.innerHTML=shell(mode,`<div class="result">
+    <div class="big">${correct}/${total}</div>
+    ${starHTML(st,'bigstars')}
+    <p>${msg}${isNew?' <b>Kỉ lục mới!</b>':''}</p>
+    ${extra?`<p class="lead">${extra}</p>`:''}
+    <p class="note" id="sendst"></p>
+    <div class="row" style="justify-content:center"><button class="primary" id="again">Chơi lại</button><button class="ghost" id="tomenu">Chọn trò khác</button></div>
+    ${mistakes&&mistakes.length?`<div class="review"><h3>Các câu cần xem lại</h3>${mistakes.map(x=>`<div class="rv">${f(x.q)}<i>${f(x.e)}</i></div>`).join('')}</div>`:''}
+  </div>`);
+  bindBack();
+  document.getElementById('again').onclick=()=>START[modeId]();
+  document.getElementById('tomenu').onclick=menu;
+  const stEl=document.getElementById('sendst');
+  if(sheetUrl()&&player()){stEl.textContent='Đang gửi điểm lên bảng xếp hạng…';
+    submit(modeId,correct,total).then(r=>{if(!document.body.contains(stEl))return;
+      if(r==='sent'){stEl.textContent='Đã lưu điểm lên bảng xếp hạng lớp.';stEl.className='note ok'}
+      else{stEl.textContent='Chưa gửi được điểm (có thể do mất mạng). Điểm sẽ tự gửi lại ở lần mở game sau.';stEl.className='note no'}});}
+  else if(sheetUrl()){stEl.innerHTML='Điểm lượt này chưa được lưu vì bạn chưa nhập tên. <button class="linkbtn" id="nm2">Nhập tên</button>';
+    document.getElementById('nm2').onclick=()=>askName(menu);}
+}
+
+// ---------- MCQ ----------
+function playMCQ(){
+  const mode=MODES[0]; const qs=shuffle(MCQ).slice(0,10);
+  let i=0,score=0,correct=0,streak=0; const miss=[];
+  const T=20;
+  function render(){
+    stopTimer();
+    const q=qs[i]; const opts=shuffle([q.a,...q.w]); let left=T;
+    app.innerHTML=shell(mode,`
+      <div class="progress"><i style="width:${i/qs.length*100}%"></i></div>
+      <div class="progress timer" id="tm"><i style="width:100%"></i></div>
+      <p class="q">${i+1}. ${f(q.q)}</p>
+      <div class="opts">${opts.map((o,k)=>`<button class="opt" data-v="${encodeURIComponent(o)}"><span class="k">${'ABCD'[k]}</span>${f(o)}</button>`).join('')}</div>
+      <div id="fb"></div>`,
+      `<span class="chip">Câu ${i+1}/${qs.length}</span><span class="chip hot">${score} điểm</span>${streak>1?`<span class="chip">Chuỗi ${streak}</span>`:''}`);
+    bindBack();
+    const tm=document.getElementById('tm');
+    timerId=setInterval(()=>{left-=.1;tm.firstElementChild.style.width=Math.max(0,left/T*100)+'%';tm.classList.toggle('low',left<6);if(left<=0)answer(null)},100);
+    let t0=Date.now();
+    function answer(v){
+      stopTimer();
+      const ok=v===q.a;
+      app.querySelectorAll('.opt').forEach(b=>{b.disabled=true;const bv=decodeURIComponent(b.dataset.v);if(bv===q.a)b.classList.add('right');else if(bv===v)b.classList.add('wrong')});
+      if(ok){correct++;streak++;const bonus=Math.round(Math.max(0,T-(Date.now()-t0)/1000)*5);score+=100+bonus+(streak>=3?20:0)}
+      else{streak=0;miss.push({q:q.q,e:'Đáp án: '+q.a+'. '+q.e})}
+      document.getElementById('fb').innerHTML=`<div class="fb ${ok?'ok':'no'}"><b>${ok?'Chính xác!':v===null?'Hết giờ!':'Chưa đúng.'}</b>${f(q.e)}</div>
+        <div style="margin-top:12px"><button class="primary" id="nx">${i+1<qs.length?'Câu tiếp':'Xem kết quả'}</button></div>`;
+      document.getElementById('nx').onclick=()=>{i++;i<qs.length?render():finish('mcq',correct,qs.length,`Tổng điểm: ${score}`,miss)};
+      document.getElementById('nx').focus();
+    }
+    app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answer(decodeURIComponent(b.dataset.v)));
+  }
+  render();
+}
+
+// ---------- True/False blitz ----------
+function playTF(){
+  const mode=MODES[1]; let pool=shuffle(TF); let i=0,correct=0,answered=0,streak=0,left=60; const miss=[];
+  app.innerHTML=shell(mode,`
+    <div class="progress timer" id="tm"><i style="width:100%"></i></div>
+    <p class="stmt" id="st"></p>
+    <div class="tf"><button class="tfb t" id="bt">ĐÚNG</button><button class="tfb f" id="bf">SAI</button></div>
+    <p class="foot">Phím tắt: ← Đúng, → Sai</p>`,`<span class="chip" id="cl">60 giây</span><span class="chip hot" id="cs">0 đúng</span>`);
+  bindBack();
+  const st=document.getElementById('st'),tm=document.getElementById('tm'),panel=document.getElementById('panel');
+  const show=()=>{if(i>=pool.length){pool=pool.concat(shuffle(TF));}st.innerHTML=f(pool[i].s)};
+  show();
+  function ans(v){
+    if(left<=0)return;
+    const it=pool[i]; const ok=(v===!!it.t); answered++;
+    if(ok){correct++;streak++}else{streak=0;if(!miss.find(m=>m.q===it.s))miss.push({q:it.s,e:(it.t?'Đúng. ':'Sai. ')+it.e})}
+    panel.classList.remove('flash-ok','flash-no');void panel.offsetWidth;panel.classList.add(ok?'flash-ok':'flash-no');
+    document.getElementById('cs').textContent=correct+' đúng'+(streak>2?' · chuỗi '+streak:'');
+    i++;show();
+  }
+  document.getElementById('bt').onclick=()=>ans(true);
+  document.getElementById('bf').onclick=()=>ans(false);
+  const key=e=>{if(!document.getElementById('bt')){document.removeEventListener('keydown',key);return}if(e.key==='ArrowLeft')ans(true);if(e.key==='ArrowRight')ans(false)};
+  document.addEventListener('keydown',key);
+  timerId=setInterval(()=>{left-=.1;tm.firstElementChild.style.width=Math.max(0,left/60*100)+'%';tm.classList.toggle('low',left<10);
+    document.getElementById('cl').textContent=Math.ceil(Math.max(0,left))+' giây';
+    if(left<=0){document.removeEventListener('keydown',key);finish('tf',correct,Math.max(answered,1),`Bạn trả lời ${answered} nhận định trong 60 giây.`,miss)}},100);
+}
+
+// ---------- set picker ----------
+function picker(mode,sets,play){
+  stopTimer();
+  app.innerHTML=shell(mode,`<p class="lead">Chọn một bộ để chơi.</p>
+    <div class="sets">${sets.map((s,k)=>`<button class="set" data-k="${k}"><b>${s.name}</b><span>${s.hint||(s.items.length+' chất')}</span></button>`).join('')}
+    <button class="set" data-k="r"><b>Ngẫu nhiên</b><span>Để máy chọn giúp</span></button></div>`);
+  bindBack();
+  app.querySelectorAll('.set').forEach(b=>b.onclick=()=>{const k=b.dataset.k==='r'?(Math.random()*sets.length|0):+b.dataset.k;play(k)});
+}
+
+// ---------- Match ----------
+function playMatch(k){
+  const mode=MODES[2]; const set=MATCH[k];
+  const L=shuffle(set.pairs.map((p,i)=>({t:p[0],i}))), R=shuffle(set.pairs.map((p,i)=>({t:p[1],i})));
+  let sel=null,done=0,misses=0; const t0=Date.now(); const missList=[];
+  app.innerHTML=shell(mode,`<p class="lead">${set.name}</p>
+    <div class="match"><div class="col">${L.map(x=>`<button class="mi" data-s="L" data-i="${x.i}">${f(x.t)}</button>`).join('')}</div>
+    <div class="col">${R.map(x=>`<button class="mi" data-s="R" data-i="${x.i}">${f(x.t)}</button>`).join('')}</div></div>`,
+    `<span class="chip hot" id="mc">0/${set.pairs.length} cặp</span><span class="chip" id="mm">0 lần sai</span>`);
+  bindBack();
+  app.querySelectorAll('.mi').forEach(b=>b.onclick=()=>{
+    if(b.classList.contains('done'))return;
+    if(!sel||sel.dataset.s===b.dataset.s){if(sel)sel.classList.remove('sel');sel=b;b.classList.add('sel');return}
+    if(sel.dataset.i===b.dataset.i){sel.classList.add('done');b.classList.add('done');sel.classList.remove('sel');sel.disabled=b.disabled=true;sel=null;done++;
+      document.getElementById('mc').textContent=`${done}/${set.pairs.length} cặp`;
+      if(done===set.pairs.length){const sec=Math.round((Date.now()-t0)/1000);
+        setTimeout(()=>finish('match',Math.max(0,set.pairs.length-misses),set.pairs.length,`Hoàn thành trong ${sec} giây với ${misses} lần ghép sai. Mỗi lần sai bị trừ 1 cặp.`,missList),350)}}
+    else{misses++;const a=sel,lt=a.dataset.s==='L'?a:b;const p=set.pairs[+lt.dataset.i];
+      if(!missList.find(m=>m.q===p[0]))missList.push({q:p[0],e:'Đáp án đúng: '+p[1]});
+      document.getElementById('mm').textContent=misses+' lần sai';
+      [a,b].forEach(x=>{x.classList.remove('bad');void x.offsetWidth;x.classList.add('bad')});a.classList.remove('sel');sel=null}
+  });
+}
+
+// ---------- Sort ----------
+function playSort(k){
+  const mode=MODES[3]; const set=SORT[k]; const items=shuffle(set.items); let i=0,correct=0; const miss=[];
+  const counts=set.bins.map(()=>0);
+  function render(fb){
+    app.innerHTML=shell(mode,`<p class="lead">${set.name}</p>
+      <div class="progress"><i style="width:${i/items.length*100}%"></i></div>
+      <div class="specimen">${i<items.length?f(items[i][0]):''}</div>
+      <div class="bins">${set.bins.map((b,j)=>`<button class="bin" data-j="${j}">${b}<small>${counts[j]} chất</small></button>`).join('')}</div>
+      <div id="fb">${fb||''}</div>`,`<span class="chip">${Math.min(i+1,items.length)}/${items.length}</span><span class="chip hot">${correct} đúng</span>`);
+    bindBack();
+    app.querySelectorAll('.bin').forEach(b=>b.onclick=()=>{
+      const it=items[i]; const j=+b.dataset.j; const ok=j===it[1]; counts[it[1]]++;
+      if(ok)correct++;else miss.push({q:it[0],e:'Thuộc nhóm: '+set.bins[it[1]]});
+      const fbh=`<div class="fb ${ok?'ok':'no'}"><b>${ok?'Đúng nhóm!':'Chưa đúng.'}</b>${f(it[0])} thuộc nhóm “${set.bins[it[1]]}”.</div>`;
+      i++; if(i<items.length)render(fbh);else finish('sort',correct,items.length,'',miss);
+    });
+  }
+  render();
+}
+
+// ---------- Mystery tube ----------
+function playMys(){
+  const mode=MODES[4]; const cases=shuffle(MYS).slice(0,6); let n=0,pts=0,correct=0; const miss=[];
+  const tubeSVG=lvl=>{const colors=['var(--silver)','var(--cu-soft)','var(--cu)','var(--cu)'];return `<svg width="54" height="150" viewBox="0 0 54 150" aria-hidden="true">
+    <rect x="4" y="2" width="46" height="8" rx="3" fill="var(--line)"/>
+    <path d="M10 10 V120 a17 17 0 0 0 34 0 V10" fill="var(--card)" stroke="var(--ink)" stroke-width="2.5"/>
+    <path d="M12 ${118-lvl*24} V120 a15 15 0 0 0 30 0 V${118-lvl*24} Z" fill="${colors[lvl]}" opacity=".85"/>
+    <text x="27" y="${108}" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ink)" font-family="var(--f-display)">?</text></svg>`};
+  function render(){
+    const c=cases[n]; let shown=1; const opts=shuffle(c.o);
+    function draw(fb){
+      app.innerHTML=shell(mode,`
+        <div class="progress"><i style="width:${n/cases.length*100}%"></i></div>
+        <div class="tube">${tubeSVG(shown)}<div class="clues">
+          ${c.c.map((t,k)=>k<shown?`<div class="clue"><b>Gợi ý ${k+1}.</b> ${f(t)}</div>`:`<div class="clue locked">Gợi ý ${k+1} đang khoá</div>`).join('')}
+        </div></div>
+        <div class="opts">${opts.map(o=>`<button class="opt" data-v="${o}">${o}</button>`).join('')}</div>
+        <div class="row">${shown<3&&!fb?`<button class="ghost" id="more">Mở gợi ý ${shown+1} (giảm còn ${3-shown} điểm)</button>`:''}</div>
+        <div id="fb">${fb||''}</div>`,`<span class="chip">Ống ${n+1}/${cases.length}</span><span class="chip hot">${pts} điểm</span><span class="chip">Đoán ngay: ${4-shown} điểm</span>`);
+      bindBack();
+      const more=document.getElementById('more'); if(more)more.onclick=()=>{shown++;draw()};
+      app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+        const ok=b.dataset.v===c.a;
+        app.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(x.dataset.v===c.a)x.classList.add('right');else if(x===b)x.classList.add('wrong')});
+        if(ok){pts+=4-shown;correct++}else miss.push({q:'Ống nghiệm chứa '+c.a,e:c.c.join(' ')});
+        shown=3;
+        const host=document.getElementById('fb');
+        app.querySelector('.clues').innerHTML=c.c.map((t,k)=>`<div class="clue"><b>Gợi ý ${k+1}.</b> ${f(t)}</div>`).join('');
+        const mb=document.getElementById('more'); if(mb)mb.remove();
+        host.innerHTML=`<div class="fb ${ok?'ok':'no'}"><b>${ok?'Đoán đúng!':'Chưa đúng.'}</b>Chất trong ống là ${c.a}.</div>
+          <div style="margin-top:12px"><button class="primary" id="nx">${n+1<cases.length?'Ống tiếp theo':'Xem kết quả'}</button></div>`;
+        document.getElementById('nx').onclick=()=>{n++;n<cases.length?render():finish('mys',correct,cases.length,`Tổng điểm: ${pts}/${cases.length*3}. Đoán ở gợi ý 1 được 3 điểm.`,miss)};
+      });
+    }
+    draw();
+  }
+  render();
+}
+
+// ---------- Equation ----------
+function playEq(){
+  const mode=MODES[5]; const qs=shuffle(EQ).slice(0,10); let i=0,correct=0; const miss=[];
+  function render(){
+    const q=qs[i]; const opts=shuffle([q.a,...q.w]);
+    const eqHTML=v=>f(q.e).replace('___',`<span class="blank ${v&&v!==q.a?'no':''}" id="bl">${v?f(v):'?'}</span>`);
+    app.innerHTML=shell(mode,`
+      <div class="progress"><i style="width:${i/qs.length*100}%"></i></div>
+      <div class="eq" id="eqb">${eqHTML()}${q.c?`<span class="cond">Điều kiện: ${f(q.c)}</span>`:''}</div>
+      <div class="opts">${opts.map(o=>`<button class="opt" data-v="${encodeURIComponent(o)}">${f(o)}</button>`).join('')}</div>
+      <div id="fb"></div>`,`<span class="chip">${i+1}/${qs.length}</span><span class="chip hot">${correct} đúng</span>`);
+    bindBack();
+    app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const v=decodeURIComponent(b.dataset.v); const ok=v===q.a;
+      app.querySelectorAll('.opt').forEach(x=>{x.disabled=true;const xv=decodeURIComponent(x.dataset.v);if(xv===q.a)x.classList.add('right');else if(x===b)x.classList.add('wrong')});
+      document.getElementById('eqb').innerHTML=f(q.e).replace('___',`<span class="blank">${f(q.a)}</span>`)+(q.c?`<span class="cond">Điều kiện: ${f(q.c)}</span>`:'');
+      if(ok)correct++;else miss.push({q:q.e.replace('___','?'),e:'Chỗ trống là '+q.a});
+      document.getElementById('fb').innerHTML=`<div class="fb ${ok?'ok':'no'}"><b>${ok?'Cân đúng rồi!':'Chưa đúng.'}</b>Chỗ trống là ${f(q.a)}.</div>
+        <div style="margin-top:12px"><button class="primary" id="nx">${i+1<qs.length?'Phương trình tiếp':'Xem kết quả'}</button></div>`;
+      document.getElementById('nx').onclick=()=>{i++;i<qs.length?render():finish('eq',correct,qs.length,'',miss)};
+    });
+  }
+  render();
+}
+
+
+// ---------- bảng xếp hạng (Google Sheets) ----------
+const SHEET_DEFAULT='';
+let skipName=false;
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function sheetUrl(){let q='';try{q=new URLSearchParams(location.search).get('bxh')||''}catch(e){}
+  return String(q||store.get('sheet','')||SHEET_DEFAULT).trim()}
+const player=()=>store.get('player',null);
+async function apiGet(params){
+  const url=sheetUrl(); const u=url+(url.includes('?')?'&':'?')+new URLSearchParams(params||{}).toString();
+  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),15000);
+  try{const r=await fetch(u,{signal:ctl.signal,redirect:'follow'});const j=await r.json();if(!j||!j.ok)throw new Error('bad');return j}
+  finally{clearTimeout(t)}
+}
+async function apiPost(body){
+  const url=sheetUrl(); const txt=JSON.stringify(body);
+  try{const r=await fetch(url,{method:'POST',body:txt,redirect:'follow'});const j=await r.json();if(j&&j.ok===false)return 'rejected';return 'ok'}
+  catch(e){await fetch(url,{method:'POST',mode:'no-cors',body:txt});return 'ok'}
+}
+let flushing=null;
+function flush(){
+  if(flushing)return flushing;
+  flushing=(async()=>{const q=store.get('queue',[]); if(!q.length||!sheetUrl())return 'sent';
+    const rest=[]; for(const it of q){try{await apiPost(it)}catch(e){rest.push(it)}}
+    store.set('queue',rest); return rest.length?'pending':'sent'})().finally(()=>{flushing=null});
+  return flushing;
+}
+async function submit(mode,correct,total){
+  const p=player(); if(!p||!sheetUrl())return 'off';
+  if(flushing)await flushing.catch(()=>{});
+  const q=store.get('queue',[]); q.push({name:p.name,lop:p.lop,mode,correct,total,t:Date.now()}); store.set('queue',q.slice(-60));
+  return flush();
+}
+
+function askName(next){
+  stopTimer();
+  const p=player()||{name:'',lop:''};
+  app.innerHTML=`<div class="panel"><div class="bar"><button class="back" id="back">← Về menu</button></div>
+    <h2>Bạn là ai?</h2>
+    <p class="lead">Nhập đúng họ tên và lớp để thầy cô nhận ra bạn trên bảng xếp hạng. Mỗi lần nhập lại cùng tên và lớp, điểm sẽ được cộng vào cùng một dòng.</p>
+    <form class="form" id="f">
+      <label class="field">Họ và tên<input id="pname" maxlength="40" autocomplete="name" required value="${esc(p.name)}" placeholder="Ví dụ: Nguyễn Văn An"></label>
+      <label class="field">Lớp<input id="plop" maxlength="12" required value="${esc(p.lop)}" placeholder="Ví dụ: 12A1" style="text-transform:uppercase"></label>
+      <p class="note no" id="perr" hidden></p>
+      <div class="row"><button class="primary" type="submit">Lưu và chơi</button><button class="ghost" type="button" id="skip">Chơi không lưu điểm</button></div>
+    </form></div>`;
+  bindBack();
+  document.getElementById('f').onsubmit=e=>{e.preventDefault();
+    const name=document.getElementById('pname').value.replace(/\s+/g,' ').trim();
+    const lop=document.getElementById('plop').value.replace(/\s+/g,'').toUpperCase();
+    const er=document.getElementById('perr');
+    if(name.length<3||!/\s/.test(name)){er.textContent='Hãy nhập đầy đủ họ và tên.';er.hidden=false;return}
+    if(!lop){er.textContent='Hãy nhập lớp, ví dụ 12A1.';er.hidden=false;return}
+    store.set('player',{name,lop}); skipName=false; next();
+  };
+  document.getElementById('skip').onclick=()=>{skipName=true;next()};
+  setTimeout(()=>{const i=document.getElementById('pname');if(i&&!i.value)i.focus()},50);
+}
+
+function board(){
+  stopTimer();
+  const url=sheetUrl(), p=player();
+  const mode={name:'Bảng xếp hạng lớp'};
+  if(!url){
+    app.innerHTML=shell(mode,`<p class="lead">Giáo viên chưa kết nối bảng xếp hạng cho game này, nên điểm hiện chỉ lưu trên máy của bạn.</p>
+      <button class="ghost" id="gs" style="align-self:flex-start">Tôi là giáo viên: cài đặt ngay</button>`);
+    bindBack(); document.getElementById('gs').onclick=setup; return;
+  }
+  let lop=store.get('lbclass',p?p.lop:'');
+  app.innerHTML=shell(mode,`
+    <div class="row" style="align-items:flex-end">
+      <label class="field" style="min-width:160px">Lớp<select class="inp" id="cls"><option value="">Tất cả các lớp</option>${lop?`<option value="${esc(lop)}" selected>${esc(lop)}</option>`:''}</select></label>
+      <button class="ghost" id="reload">Tải lại</button>
+    </div>
+    <p class="note">Xếp theo tổng số sao (tối đa 18), rồi theo tổng điểm phần trăm tốt nhất của 6 trò chơi (tối đa 600).</p>
+    <div id="lbody"><p class="note">Đang tải bảng xếp hạng…</p></div>`);
+  bindBack();
+  const sel=document.getElementById('cls'), body=document.getElementById('lbody');
+  async function load(){
+    body.innerHTML='<p class="note">Đang tải bảng xếp hạng…</p>';
+    try{
+      await flush().catch(()=>{});
+      const j=await apiGet(lop?{lop}:{});
+      const cur=sel.value;
+      sel.innerHTML='<option value="">Tất cả các lớp</option>'+(j.classes||[]).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+      sel.value=(j.classes||[]).includes(cur)?cur:'';
+      const list=j.list||[];
+      if(!list.length){body.innerHTML='<p class="note">Chưa có ai trên bảng xếp hạng. Hãy chơi một lượt để mở màn!</p>';return}
+      const isMe=x=>p&&x.lop===p.lop&&x.name.toLowerCase().replace(/\s+/g,' ')===p.name.toLowerCase();
+      const myIdx=list.findIndex(isMe);
+      const shown=list.slice(0,50);
+      body.innerHTML=`${myIdx>=0?`<p><b>Bạn đang xếp hạng ${myIdx+1}/${j.total||list.length}</b>${lop?` trong lớp ${esc(lop)}`:''}.</p>`:''}
+        <div class="lbwrap"><table class="lbt"><thead><tr><th>#</th><th>Học sinh</th><th class="r">Sao</th><th class="r">Điểm</th></tr></thead><tbody>
+        ${shown.map((x,i)=>`<tr class="${i<3?'top'+(i+1):''} ${isMe(x)?'mine':''}"><td class="rk">${i+1}</td>
+          <td class="nm">${esc(x.name)}<small>Lớp ${esc(x.lop)} · ${Object.keys(x.best||{}).length}/6 trò · ${x.plays} lượt</small></td>
+          <td class="r"><b>${x.stars}</b> ★</td><td class="r">${x.points}</td></tr>`).join('')}
+        </tbody></table></div>
+        ${myIdx>=50?`<p class="note">Bạn ở hạng ${myIdx+1}, ngoài top 50 đang hiển thị.</p>`:''}`;
+    }catch(e){
+      body.innerHTML='<p class="note no">Không tải được bảng xếp hạng. Kiểm tra kết nối mạng rồi bấm Tải lại.</p>';
+    }
+  }
+  sel.onchange=()=>{lop=sel.value;store.set('lbclass',lop);load()};
+  document.getElementById('reload').onclick=load;
+  load();
+}
+
+function setup(){
+  stopTimer();
+  const cur=store.get('sheet','')||SHEET_DEFAULT;
+  const mode={name:'Cài đặt bảng xếp hạng'};
+  app.innerHTML=shell(mode,`
+    <p class="lead">Điểm của học sinh sẽ được ghi vào một Google Sheet của thầy cô. Chỉ cần làm một lần, khoảng 5 phút.</p>
+    <ol class="steps">
+      <li>Tạo một Google Sheet mới (sheets.new).</li>
+      <li>Vào menu <b>Tiện ích mở rộng → Apps Script</b>. Xoá đoạn code có sẵn, dán toàn bộ nội dung file <code>Hoa12-GK1_AppsScript_v3.gs</code>, bấm <b>Lưu</b>.</li>
+      <li>Bấm <b>Triển khai → Tùy chọn triển khai mới</b>, chọn loại <b>Ứng dụng web</b>. Đặt <b>Thực thi dưới dạng: Tôi</b> và <b>Người có quyền truy cập: Bất kỳ ai</b>, rồi bấm Triển khai và cấp quyền cho tài khoản Google của thầy cô.</li>
+      <li>Sao chép <b>URL ứng dụng web</b> (kết thúc bằng <code>/exec</code>), dán vào ô bên dưới và bấm Kiểm tra.</li>
+    </ol>
+    <form class="form" id="sf">
+      <label class="field">URL ứng dụng web<input id="surl" inputmode="url" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(cur)}"></label>
+      <div class="row"><button class="primary" type="submit">Kiểm tra và lưu</button></div>
+      <p class="note" id="sst"></p>
+    </form>
+    <div id="share"></div>
+    <p class="note">URL lưu ở đây chỉ áp dụng cho máy này. Để mọi học sinh dùng chung, hãy gửi học sinh link chia sẻ ở trên (khi game được đưa lên mạng), hoặc gửi URL cho người soạn game để gắn sẵn vào file.</p>`);
+  bindBack();
+  const showShare=u=>{const box=document.getElementById('share');
+    if(!/^https?:/.test(location.protocol)){box.innerHTML='';return}
+    const link=location.origin+location.pathname+'?bxh='+encodeURIComponent(u);
+    box.innerHTML=`<p class="field">Link gửi học sinh</p><div class="sharebox" id="lnk">${esc(link)}</div><div class="row" style="margin-top:8px"><button class="ghost" id="cp">Sao chép link</button></div>`;
+    document.getElementById('cp').onclick=()=>{navigator.clipboard.writeText(link).then(()=>{document.getElementById('cp').textContent='Đã sao chép'}).catch(()=>{const r=document.createRange();r.selectNodeContents(document.getElementById('lnk'));const s=getSelection();s.removeAllRanges();s.addRange(r)})};
+  };
+  if(cur)showShare(cur);
+  document.getElementById('sf').onsubmit=async e=>{e.preventDefault();
+    const u=document.getElementById('surl').value.trim(), st=document.getElementById('sst');
+    if(!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(u)){st.textContent='URL chưa đúng. URL ứng dụng web bắt đầu bằng https://script.google.com/ và kết thúc bằng /exec.';st.className='note no';return}
+    st.textContent='Đang kiểm tra…';st.className='note';
+    const old=store.get('sheet',''); store.set('sheet',u);
+    try{const j=await apiGet({});st.textContent=`Kết nối thành công. Bảng hiện có ${j.total||0} học sinh.`;st.className='note ok';showShare(u)}
+    catch(err){store.set('sheet',old);st.textContent='Không kết nối được. Kiểm tra lại bước 3 (quyền truy cập phải là "Bất kỳ ai") và kết nối mạng.';st.className='note no'}
+  };
+}
+
+const START={mcq:playMCQ,tf:playTF,match:()=>picker(MODES[2],MATCH,playMatch),sort:()=>picker(MODES[3],SORT,playSort),mys:playMys,eq:playEq};
+menu();
+flush().catch(()=>{});
+})();
+</script>
+
+</body>
+</html>
