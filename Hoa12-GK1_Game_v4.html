@@ -150,6 +150,12 @@ button:focus-visible,.tile:focus-visible{outline:3px solid var(--cu);outline-off
 .lbbtn{display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper);border:none;border-radius:8px;padding:12px 16px;font-weight:700;font-size:16px;align-self:flex-start}
 .lbbtn:hover{filter:brightness(1.15)}
 .lbwrap{overflow-x:auto}
+.stsum{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
+.stsum span{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:14px}
+.lbt td.no,.lbt tr.none td{color:var(--muted)}
+.lbt td.tt{color:var(--muted);width:2em}
+.lbt .mc{text-align:center;font-size:13px}
+
 .lbt{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:15px}
 .lbt th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:6px;border-bottom:2px solid var(--ink)}
 .lbt td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
@@ -365,12 +371,13 @@ function menu(){
       <span class="ds">${m.ds}</span>
     </button>`).join('')}
   </div>
-  <p class="foot">Số sao trên các ô là kỉ lục của bạn trên máy này. · <button class="linkbtn" id="setup" style="font-size:inherit;color:inherit">Dành cho giáo viên: cài đặt bảng xếp hạng</button></p>`;
+  <p class="foot">Số sao trên các ô là kỉ lục của bạn trên máy này. · <button class="linkbtn" id="setup" style="font-size:inherit;color:inherit">Dành cho giáo viên: cài đặt bảng xếp hạng</button> · <button class="linkbtn" id="stat" style="font-size:inherit;color:inherit">Thống kê điểm theo lớp</button></p>`;
   app.querySelectorAll('.tile').forEach(b=>b.onclick=()=>{
     if(sheetUrl()&&!player()&&!skipName){return askName(()=>START[b.dataset.m]())}
     START[b.dataset.m]()});
   document.getElementById('lb').onclick=board;
   document.getElementById('setup').onclick=setup;
+  document.getElementById('stat').onclick=stats;
   const w=document.getElementById('who'); if(w)w.onclick=()=>askName(menu);
 }
 function shell(mode,inner,chips=''){
@@ -625,29 +632,46 @@ async function submit(mode,correct,total){
   return flush();
 }
 
+// Danh sách lớp lấy từ sổ điểm cá nhân (tên phải khớp tuyệt đối để điểm cộng đúng dòng)
+const ROSTER={"12B": ["Bùi Phan Trâm Anh", "Hồ Nguyễn Thảo Anh", "Vũ Thị Trâm Anh", "Vũ Minh Châu", "Lê Đức Duy", "Trần Hải Đăng", "Đoàn Nguyễn Trường Hải", "Ngô Gia Hào", "Phạm Xuân Hiếu", "Phạm Lê Quốc Huy", "Nguyễn Hà Duy Khánh", "Hồ Anh Khoa", "Nguyễn Nguyên Khôi", "Trần Phan Minh Khôi", "Trần Hải Lâm", "Hoàng Vương Linh Linh", "Phạm Khánh Ly", "Đặng Thiên Minh", "Vũ Nguyễn Nguyệt Minh", "Lê Ngọc Bảo Nghi", "Nguyễn Hà Như Ngọc", "Phạm Nguyễn Như Ngọc", "Trần Nguyễn Bảo Ngọc", "Trần Phương Nguyên", "Nguyễn Đình Minh Nhật", "Đoàn Lưu Quỳnh Như", "Lê Tâm Như", "Lê Công Pháp", "Lê Mai Phương", "Nguyễn Hoàng Nam Phương", "Nguyễn Thị Diễm Quỳnh", "Trịnh Vưu Hưng Thạnh", "Đinh Minh Thư", "Lê Trần Hoài Thương", "Vũ Hồng Thủy Tiên", "Nguyễn An Toàn", "Đỗ Thị Vân Trang", "Nguyễn Thị Bảo Trâm", "Nguyễn Thị Huyền Trân", "Phạm Thanh Tú", "Phan Ngọc Khuê Tú", "Lê Phú Gia Uyên", "Phan Thị Thanh Vàng", "Phan Thị Tường Vy"], "12A3": ["Đỗ Lê Minh Anh", "Nguyễn Hoài Anh", "Nguyễn Minh Anh", "Nguyễn Ngọc Anh", "Đỗ Gia Bảo", "Dương Viết Chánh", "Hoàng Xuân Cường", "Phan Quốc Cường", "Võ Nguyễn Tấn Dũng", "Nguyễn Viết Đẩu", "Bùi Quốc Huy", "Bùi Tiến Huy", "Nguyễn Gia Huy", "Nguyễn Huỳnh Minh Huy", "Nguyễn Tuấn Hưng", "Nguyễn Duy Khánh", "Lê Anh Kiệt", "Phạm Khải Lâm", "Ngô Thúc Lân", "Đỗ Phương Linh", "Nguyễn Hoàng Long(24/3)", "Nguyễn Hoàng Long(22/4)", "Nguyễn Thành Luân", "Nguyễn Gia Lực", "Dương Trọng Minh", "Đinh Nguyễn Bảo Ngân", "Lê Nguyễn Tuyết Ngân", "Nguyễn Trung Nguyên", "Trịnh Khôi Nguyên", "Nguyễn Thế Nhiên", "Nguyễn Trần Tâm Như", "Nguyễn Thành Phát", "Quách Gia Phát", "Nguyễn Văn Sơn", "Nguyễn Hồng Thanh", "Thân Thị Minh Thư", "Lê Trung Trọng", "Nguyễn Minh Tuấn", "Trầm Thúy Vy", "Nguyễn Huỳnh Ngọc Yến", "Nguyễn Kim Ngân", "Nguyễn Hải Ninh", "Trần Hiếu Dũng"], "12A1.4": ["Đặng Trương Minh Anh", "Hồ Mai Anh", "Nguyễn Tuấn Anh", "Trần Khánh Anh", "Đậu Thị Ngọc Ánh", "Nguyễn Ngọc Bích", "Trần Nguyễn Phương Chi", "Văn Mạnh Cường", "Trần Vương Duy", "Lê Thị Mỹ Duyên", "Nguyễn Thị Ánh Dương", "Đồng Dương Hồng Giao", "Nguyễn Thanh Hà", "Nguyễn Đức Hải", "Lê Ngọc Gia Hân", "Nguyễn Quốc Hùng", "Nguyễn Hoàng Minh Kiệt", "Vũ Mạnh Kiệt", "Lê Trần Khánh Ngọc", "Nguyễn Minh Nguyên", "Hoàng Ngọc Yến Nhi", "Nguyễn Ngọc Châu Phát", "Trần Tuấn Phát", "Đặng Công Chí Phong", "Văn Trần Phú", "Hoàng Gia Phúc", "Nguyễn Đình Phúc", "Quách Hữu Phước", "Vũ Kim Phượng", "Lê Minh Quân", "Nguyễn Đình Nhật Tân", "Nguyễn Chí Thành", "Đinh Thị Phương Thảo", "Mai Đào Thu Thảo", "Dương Gia Thịnh", "Khuất Thị Minh Thư", "Bùi Lê Bảo Thy", "Nguyễn Tấn Toàn", "Nguyễn Lê Thảo Trang", "Nguyễn Mai Trang", "Ngô Đăng Triết", "Hoàng Đức Trọng", "Trần Duy Quốc Tuấn", "Đinh Thị Thiên Xuân", "Nguyễn Tuấn Khang"]};
 function askName(next){
   stopTimer();
   const p=player()||{name:'',lop:''};
+  const classes=Object.keys(ROSTER);
+  const inList=p.lop&&ROSTER[p.lop]&&ROSTER[p.lop].includes(p.name);
+  let manual=!!(p.name&&!inList);
   app.innerHTML=`<div class="panel"><div class="bar"><button class="back" id="back">← Về menu</button></div>
     <h2>Bạn là ai?</h2>
-    <p class="lead">Nhập đúng họ tên và lớp để thầy cô nhận ra bạn trên bảng xếp hạng. Mỗi lần nhập lại cùng tên và lớp, điểm sẽ được cộng vào cùng một dòng.</p>
+    <p class="lead">Chọn lớp rồi chọn tên của em trong danh sách. Điểm các lần chơi sau sẽ cộng vào cùng một dòng trên bảng xếp hạng.</p>
     <form class="form" id="f">
-      <label class="field">Họ và tên<input id="pname" maxlength="40" autocomplete="name" required value="${esc(p.name)}" placeholder="Ví dụ: Nguyễn Văn An"></label>
-      <label class="field">Lớp<input id="plop" maxlength="12" required value="${esc(p.lop)}" placeholder="Ví dụ: 12A1" style="text-transform:uppercase"></label>
+      <label class="field">Lớp<select id="plop" required><option value="">— Chọn lớp —</option>${classes.map(c=>`<option value="${esc(c)}"${c===p.lop?' selected':''}>${esc(c)}</option>`).join('')}${manual&&p.lop&&!ROSTER[p.lop]?`<option value="${esc(p.lop)}" selected>${esc(p.lop)}</option>`:''}</select></label>
+      <label class="field" id="selwrap">Họ và tên<select id="psel"></select></label>
+      <label class="field" id="manwrap" hidden>Họ và tên (nhập tay)<input id="pname" maxlength="40" autocomplete="name" value="${esc(manual?p.name:'')}" placeholder="Ví dụ: Nguyễn Văn An"></label>
+      <p class="note"><button class="linkbtn" type="button" id="tog"></button></p>
       <p class="note no" id="perr" hidden></p>
       <div class="row"><button class="primary" type="submit">Lưu và chơi</button><button class="ghost" type="button" id="skip">Chơi không lưu điểm</button></div>
     </form></div>`;
   bindBack();
+  const cls=document.getElementById('plop'),sel=document.getElementById('psel'),inp=document.getElementById('pname'),
+        sw=document.getElementById('selwrap'),mw=document.getElementById('manwrap'),tog=document.getElementById('tog'),er=document.getElementById('perr');
+  function fill(){
+    const list=ROSTER[cls.value]||[];
+    sel.innerHTML=`<option value="">${cls.value?'— Chọn tên —':'— Chọn lớp trước —'}</option>`+list.map((n,i)=>`<option value="${esc(n)}"${n===p.name&&cls.value===p.lop?' selected':''}>${i+1}. ${esc(n)}</option>`).join('');
+    sel.disabled=!list.length;
+  }
+  function view(){sw.hidden=manual;mw.hidden=!manual;
+    tog.textContent=manual?'Chọn tên từ danh sách lớp':'Không thấy tên mình? Nhập tay';er.hidden=true}
+  cls.onchange=fill; tog.onclick=()=>{manual=!manual;view()};
+  fill(); view();
   document.getElementById('f').onsubmit=e=>{e.preventDefault();
-    const name=document.getElementById('pname').value.replace(/\s+/g,' ').trim();
-    const lop=document.getElementById('plop').value.replace(/\s+/g,'').toUpperCase();
-    const er=document.getElementById('perr');
-    if(name.length<3||!/\s/.test(name)){er.textContent='Hãy nhập đầy đủ họ và tên.';er.hidden=false;return}
-    if(!lop){er.textContent='Hãy nhập lớp, ví dụ 12A1.';er.hidden=false;return}
+    const lop=cls.value.replace(/\s+/g,'').toUpperCase();
+    const name=(manual?inp.value:sel.value).replace(/\s+/g,' ').trim();
+    if(!lop){er.textContent='Hãy chọn lớp.';er.hidden=false;return}
+    if(!manual&&!name){er.textContent='Hãy chọn tên của em trong danh sách.';er.hidden=false;return}
+    if(manual&&(name.length<3||!/\s/.test(name))){er.textContent='Hãy nhập đầy đủ họ và tên.';er.hidden=false;return}
     store.set('player',{name,lop}); skipName=false; next();
   };
   document.getElementById('skip').onclick=()=>{skipName=true;next()};
-  setTimeout(()=>{const i=document.getElementById('pname');if(i&&!i.value)i.focus()},50);
 }
 
 function board(){
@@ -675,8 +699,9 @@ function board(){
       await flush().catch(()=>{});
       const j=await apiGet(lop?{lop}:{});
       const cur=sel.value;
-      sel.innerHTML='<option value="">Tất cả các lớp</option>'+(j.classes||[]).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-      sel.value=(j.classes||[]).includes(cur)?cur:'';
+      const allc=[...new Set([...Object.keys(ROSTER),...(j.classes||[])])];
+      sel.innerHTML='<option value="">Tất cả các lớp</option>'+allc.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+      sel.value=allc.includes(cur)?cur:'';
       const list=j.list||[];
       if(!list.length){body.innerHTML='<p class="note">Chưa có ai trên bảng xếp hạng. Hãy chơi một lượt để mở màn!</p>';return}
       const isMe=x=>p&&x.lop===p.lop&&x.name.toLowerCase().replace(/\s+/g,' ')===p.name.toLowerCase();
@@ -695,6 +720,79 @@ function board(){
   }
   sel.onchange=()=>{lop=sel.value;store.set('lbclass',lop);load()};
   document.getElementById('reload').onclick=load;
+  load();
+}
+
+// ---------- thống kê điểm (giáo viên) ----------
+function stats(){
+  stopTimer();
+  const url=sheetUrl(); const mode={name:'Thống kê điểm theo lớp'};
+  if(!url){
+    app.innerHTML=shell(mode,`<p class="lead">Chưa kết nối Google Sheet nên chưa có dữ liệu để thống kê.</p>
+      <button class="ghost" id="gs" style="align-self:flex-start">Cài đặt bảng xếp hạng</button>`);
+    bindBack(); document.getElementById('gs').onclick=setup; return;
+  }
+  const classes=Object.keys(ROSTER);
+  let lop=store.get('stclass',classes[0]||'');
+  app.innerHTML=shell(mode,`
+    <div class="row" style="align-items:flex-end">
+      <label class="field" style="min-width:160px">Lớp<select class="inp" id="scls">${classes.map(c=>`<option value="${esc(c)}"${c===lop?' selected':''}>${esc(c)}</option>`).join('')}</select></label>
+      <button class="ghost" id="sreload">Tải lại</button>
+      <button class="ghost" id="scsv">Tải file CSV</button>
+    </div>
+    <p class="note">Theo thứ tự trong sổ điểm. Sao: tối đa 18. Điểm: tổng phần trăm tốt nhất của 6 trò (tối đa 600).</p>
+    <div id="sbody"><p class="note">Đang tải…</p></div>`);
+  bindBack();
+  const sel=document.getElementById('scls'), body=document.getElementById('sbody');
+  let rows=[];
+  const norm=s=>String(s||'').toLowerCase().normalize('NFC').replace(/\s+/g,' ').trim();
+  const bv=v=>{if(v==null)return '';if(typeof v==='object')v=v.pct??v.points??v.p??v.stars??'';return v};
+  async function load(){
+    body.innerHTML='<p class="note">Đang tải…</p>';
+    try{
+      const j=await apiGet({lop});
+      const list=(j.list||[]).filter(x=>String(x.lop).toUpperCase()===lop.toUpperCase());
+      const map=new Map(list.map(x=>[norm(x.name),x]));
+      const roster=ROSTER[lop]||[], used=new Set();
+      rows=roster.map((n,i)=>{const x=map.get(norm(n)); if(x)used.add(norm(n)); return {tt:i+1,name:n,x}});
+      const extra=list.filter(x=>!used.has(norm(x.name))).map(x=>({tt:'',name:x.name,x,extra:true}));
+      rows=rows.concat(extra);
+      const played=rows.filter(r=>r.x&&!r.extra), n=roster.length;
+      const avg=k=>played.length?(played.reduce((s,r)=>s+(+r.x[k]||0),0)/played.length).toFixed(1):'–';
+      const full=played.filter(r=>Object.keys(r.x.best||{}).length>=MODES.length).length;
+      const cell=(r,m)=>{const v=r.x&&r.x.best?bv(r.x.best[m.id]):'';return `<td class="mc">${v===''?'·':esc(v)}</td>`};
+      body.innerHTML=`<div class="stsum">
+          <span>Đã chơi: <b>${played.length}/${n}</b></span>
+          <span>Chưa chơi: <b>${n-played.length}</b></span>
+          <span>Chơi đủ 6 trò: <b>${full}</b></span>
+          <span>TB sao: <b>${avg('stars')}</b></span>
+          <span>TB điểm: <b>${avg('points')}</b></span>
+        </div>
+        <div class="lbwrap"><table class="lbt"><thead><tr><th>TT</th><th>Học sinh</th>${MODES.map(m=>`<th class="mc" title="${esc(m.name)}">${m.sym}</th>`).join('')}<th class="r">Sao</th><th class="r">Điểm</th><th class="r">Lượt</th></tr></thead><tbody>
+        ${rows.map(r=>`<tr class="${r.x?'':'none'}"><td class="tt">${r.tt}</td>
+          <td class="nm">${esc(r.name)}${r.extra?'<small>Tên không có trong sổ điểm (nhập tay)</small>':(!r.x?'<small>Chưa chơi</small>':'')}</td>
+          ${MODES.map(m=>cell(r,m)).join('')}
+          <td class="r">${r.x?`<b>${r.x.stars}</b>`:'–'}</td><td class="r">${r.x?r.x.points:'–'}</td><td class="r">${r.x?r.x.plays:'–'}</td></tr>`).join('')}
+        </tbody></table></div>
+        <p class="note">Kí hiệu cột: ${MODES.map(m=>`${m.sym} = ${esc(m.name)}`).join(' · ')}</p>`;
+    }catch(e){rows=[];body.innerHTML='<p class="note no">Không tải được dữ liệu. Kiểm tra kết nối mạng rồi bấm Tải lại.</p>'}
+  }
+  function csv(){
+    if(!rows.length)return;
+    const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+    const head=['TT','Họ và tên','Lớp',...MODES.map(m=>m.name),'Số trò đã chơi','Sao (/18)','Điểm (/600)','Lượt chơi','Ghi chú'];
+    const lines=[head.map(q).join(',')].concat(rows.map(r=>[r.tt,r.name,lop,
+      ...MODES.map(m=>r.x&&r.x.best?bv(r.x.best[m.id]):''),
+      r.x?Object.keys(r.x.best||{}).length:0, r.x?r.x.stars:'', r.x?r.x.points:'', r.x?r.x.plays:0,
+      r.extra?'Tên nhập tay, không có trong sổ':(!r.x?'Chưa chơi':'')].map(q).join(',')));
+    const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=`ThongKe_Hoa12-GK1_${lop}.csv`; document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+  }
+  sel.onchange=()=>{lop=sel.value;store.set('stclass',lop);load()};
+  document.getElementById('sreload').onclick=load;
+  document.getElementById('scsv').onclick=csv;
   load();
 }
 
